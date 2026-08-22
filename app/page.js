@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-const API_URL = 'http://144.202.12.128:8000';
+const API_URL = '';  // empty = use relative paths
 const LEAGUES = ['English', 'Spanish', 'Italian', 'German', 'Kenyan'];
 
 const LEAGUE_COLORS = {
