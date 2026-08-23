@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from 'react';
 
-const API_URL = '';  // empty = use relative paths
+const API_URL = '';
 const LEAGUES = ['English', 'Spanish', 'Italian', 'German', 'Kenyan'];
 
 const LEAGUE_COLORS = {
-  English: 'bg-blue-600 hover:bg-blue-700',
-  Spanish: 'bg-red-600 hover:bg-red-700',
-  Italian: 'bg-green-600 hover:bg-green-700',
-  German: 'bg-amber-600 hover:bg-amber-700',
-  Kenyan: 'bg-purple-600 hover:bg-purple-700'
+  English: 'from-blue-500 to-blue-700',
+  Spanish: 'from-red-500 to-red-700',
+  Italian: 'from-green-500 to-green-700',
+  German: 'from-amber-500 to-amber-700',
+  Kenyan: 'from-purple-500 to-purple-700'
 };
 
 const LEAGUE_EMOJIS = {
@@ -28,7 +28,7 @@ export default function Home() {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/status`);
+      const res = await fetch(`/api/status`);
       const data = await res.json();
       setStatus(data.leagues || {});
     } catch (e) {
@@ -38,7 +38,7 @@ export default function Home() {
 
   const fetchAnalysis = async (league) => {
     try {
-      const res = await fetch(`${API_URL}/api/analysis?league=${league}`);
+      const res = await fetch(`/api/analysis?league=${league}`);
       const data = await res.json();
       if (!data.error) {
         setAnalysis((prev) => ({ ...prev, [league]: data }));
@@ -51,7 +51,7 @@ export default function Home() {
   const scrapeLeague = async (league) => {
     setLoading((prev) => ({ ...prev, [league]: true }));
     try {
-      const res = await fetch(`${API_URL}/api/scrape?league=${league}`, { method: 'POST' });
+      const res = await fetch(`/api/scrape?league=${league}`, { method: 'POST' });
       const data = await res.json();
       if (data.success) {
         await fetchStatus();
@@ -83,9 +83,9 @@ export default function Home() {
   const MatchItem = ({ match }) => {
     const over = match.total >= 2;
     return (
-      <div className={`flex items-center gap-2 text-sm ${over ? 'text-green-700' : 'text-red-600'}`}>
-        <span className="text-gray-500 w-8">W{match.week}</span>
-        <span className="font-medium">{match.home} {match.hs}-{match.aws} {match.away}</span>
+      <div className={`flex items-center gap-2 text-sm ${over ? 'text-emerald-400' : 'text-red-400'}`}>
+        <span className="text-slate-500 w-8">W{match.week}</span>
+        <span className="font-medium text-slate-200">{match.home} {match.hs}-{match.aws} {match.away}</span>
         <span className="ml-auto text-xs font-semibold">
           {match.total} goals {over ? '✅ O1.5' : '❌ U1.5'}
         </span>
@@ -98,36 +98,62 @@ export default function Home() {
     const coldStreak = target.cold_streak || false;
     const lastMatch = target.matches?.[target.matches.length - 1] || null;
     const matches = target.matches || [];
+    const seasonType = target.season_type || 'unknown';
+    const seasonWeeks = target.season_weeks || '?';
+    const team = target.team;
 
     return (
-      <div className={`border rounded-lg p-4 ${isPrimary ? 'border-blue-400 bg-blue-50 shadow-md' : 'border-gray-300 bg-white shadow-sm'}`}>
+      <div className={`border rounded-lg p-4 ${isPrimary ? 'border-blue-500 bg-slate-800 shadow-lg shadow-blue-500/10' : 'border-slate-700 bg-slate-800/60'}`}>
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-bold text-gray-900">{target.team}</h3>
+          <h3 className="text-xl font-bold text-white">{team}</h3>
           {isPrimary && <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded-full font-semibold">🏆 Top Target</span>}
         </div>
-        <div className="text-sm text-gray-600 mt-1">
-          {target.played} matches · Avg Total <span className="font-bold">{target.avg_total}</span>
+
+        {/* Human‑Readable Verdict */}
+        {isPrimary && (
+          <div className="mt-2 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
+            <p className="text-sm text-slate-200">
+              <span className="font-bold text-white">{team}</span> is the <span className="text-emerald-400 font-semibold">top target</span> from the bottom half.
+              With an average of <span className="text-yellow-400 font-bold">{target.avg_total}</span> total goals per game and a leaky defense (<span className="text-yellow-400 font-bold">{target.avg_ga}</span> GA),
+              they consistently produce <span className="text-emerald-400 font-semibold">Over 1.5</span> matches.
+              {coldStreak && lastMatch && !lastMatch.over ? (
+                <span className="block text-red-400 mt-1">⚠️ However, their last match was <span className="font-bold">Under 1.5</span> – <span className="text-white font-bold">skip the next bet</span>.</span>
+              ) : (
+                <span className="block text-emerald-400 mt-1">✅ Their last match was <span className="font-bold">Over 1.5</span> – <span className="text-white font-bold">ready to bet</span>.</span>
+              )}
+              <span className="block text-xs text-slate-400 mt-1">Season {target.season_id} ({seasonType}) · {target.played} matches</span>
+            </p>
+          </div>
+        )}
+
+        <div className="text-sm text-slate-400 mt-1">
+          {target.played} matches · Avg Total <span className="font-bold text-white">{target.avg_total}</span>
         </div>
+        {!isPrimary && (
+          <div className="text-xs text-slate-500 mt-0.5">
+            Season {target.season_id} ({seasonType}) · {seasonWeeks} weeks
+          </div>
+        )}
 
         <div className="grid grid-cols-3 gap-2 mt-3 text-center">
-          <div className="bg-white p-2 rounded shadow-sm">
-            <div className="text-xs font-semibold text-gray-700">Avg GF</div>
-            <div className="text-lg font-bold text-gray-900">{target.avg_gf}</div>
+          <div className="bg-slate-700/50 p-2 rounded">
+            <div className="text-xs font-semibold text-slate-400">Avg GF</div>
+            <div className="text-lg font-bold text-white">{target.avg_gf}</div>
           </div>
-          <div className="bg-white p-2 rounded shadow-sm">
-            <div className="text-xs font-semibold text-gray-700">Avg GA</div>
-            <div className="text-lg font-bold text-gray-900">{target.avg_ga}</div>
+          <div className="bg-slate-700/50 p-2 rounded">
+            <div className="text-xs font-semibold text-slate-400">Avg GA</div>
+            <div className="text-lg font-bold text-white">{target.avg_ga}</div>
           </div>
-          <div className="bg-white p-2 rounded shadow-sm">
-            <div className="text-xs font-semibold text-gray-700">Avg Total</div>
-            <div className="text-lg font-bold text-blue-600">{target.avg_total}</div>
+          <div className="bg-slate-700/50 p-2 rounded">
+            <div className="text-xs font-semibold text-slate-400">Avg Total</div>
+            <div className="text-lg font-bold text-blue-400">{target.avg_total}</div>
           </div>
         </div>
 
         {matches.length > 0 && (
           <div className="mt-3">
-            <div className="text-xs font-semibold text-gray-700 mb-1">📋 All matches since Week 25:</div>
-            <div className="max-h-48 overflow-y-auto space-y-0.5 pr-1 bg-white/50 rounded-lg p-2">
+            <div className="text-xs font-semibold text-slate-400 mb-1">📋 All matches since Week 20:</div>
+            <div className="max-h-48 overflow-y-auto space-y-0.5 pr-1 bg-slate-900/50 rounded-lg p-2">
               {matches.map((m, idx) => (
                 <MatchItem key={idx} match={m} />
               ))}
@@ -135,22 +161,22 @@ export default function Home() {
           </div>
         )}
 
-        {coldStreak && lastMatch && !lastMatch.over ? (
-          <div className="mt-3 p-3 bg-red-100 border-l-4 border-red-500 rounded text-red-800 text-sm flex items-center gap-2">
-            <span className="text-lg">🚫</span>
+        {!isPrimary && coldStreak && lastMatch && !lastMatch.over ? (
+          <div className="mt-3 p-2 bg-red-900/30 border-l-4 border-red-500 rounded text-red-300 text-sm flex items-center gap-2">
+            <span>🚫</span>
             <span><strong>Skip next bet</strong> – Last match was Under 1.5</span>
           </div>
         ) : (
-          lastMatch && lastMatch.over && (
-            <div className="mt-3 p-3 bg-green-100 border-l-4 border-green-500 rounded text-green-800 text-sm flex items-center gap-2">
-              <span className="text-lg">✅</span>
+          !isPrimary && lastMatch && lastMatch.over && (
+            <div className="mt-3 p-2 bg-emerald-900/30 border-l-4 border-emerald-500 rounded text-emerald-300 text-sm flex items-center gap-2">
+              <span>✅</span>
               <span><strong>Ready to bet</strong> – Last match was Over 1.5</span>
             </div>
           )
         )}
-        {!lastMatch && (
-          <div className="mt-3 p-2 bg-gray-100 rounded text-gray-500 text-sm">
-            No matches from Week 25+ available.
+        {!isPrimary && !lastMatch && (
+          <div className="mt-3 p-2 bg-slate-700/50 rounded text-slate-400 text-sm">
+            No matches from Week 20+ available.
           </div>
         )}
       </div>
@@ -158,17 +184,17 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className="min-h-screen bg-slate-900 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-block px-4 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold tracking-wider uppercase">
+          <div className="inline-block px-4 py-1 bg-blue-900/50 text-blue-300 rounded-full text-xs font-semibold tracking-wider uppercase border border-blue-700">
             🎯 Virtual Sports Intelligence
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-2 tracking-tight">
-            Betika <span className="text-blue-600">Virtuals</span>
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 tracking-tight">
+            Sport <span className="text-blue-400">Virtuals</span>
           </h1>
-          <p className="text-gray-600 text-sm md:text-base">Live league dashboard &amp; Over 1.5 betting intelligence</p>
+          <p className="text-slate-400 text-sm md:text-base">Live league dashboard &amp; Over 1.5 betting intelligence</p>
         </div>
 
         {/* Stats Bar */}
@@ -176,18 +202,18 @@ export default function Home() {
           {LEAGUES.map((league) => {
             const week = status[league]?.current_week || '?';
             const lastScrape = getLastScrape(league);
-            const isReady = typeof week === 'number' && week >= 25;
+            const isReady = typeof week === 'number' && week >= 20;
             return (
-              <div key={`stat-${league}`} className="bg-white rounded-xl shadow-sm border border-gray-200 px-3 py-3 text-center">
+              <div key={`stat-${league}`} className="bg-slate-800/80 rounded-xl shadow-lg border border-slate-700 px-3 py-3 text-center">
                 <div className="text-2xl">{LEAGUE_EMOJIS[league]}</div>
-                <div className="text-gray-600 text-xs font-semibold uppercase tracking-wider">{league}</div>
-                <div className="text-gray-900 font-bold text-lg">Week {week}</div>
-                <div className="text-[10px] text-gray-400">{lastScrape}</div>
+                <div className="text-slate-400 text-xs font-semibold uppercase tracking-wider">{league}</div>
+                <div className="text-white font-bold text-lg">Week {week}</div>
+                <div className="text-[10px] text-slate-500">{lastScrape}</div>
                 {isReady && (
-                  <div className="mt-1 text-[10px] text-green-600 font-bold">✅ Ready (25+)</div>
+                  <div className="mt-1 text-[10px] text-emerald-400 font-bold">✅ Ready (20+)</div>
                 )}
-                {week !== '?' && week < 25 && (
-                  <div className="mt-1 text-[10px] text-amber-600 font-bold">⏳ Week {week}/25</div>
+                {week !== '?' && week < 20 && (
+                  <div className="mt-1 text-[10px] text-amber-400 font-bold">⏳ Week {week}/20</div>
                 )}
               </div>
             );
@@ -200,7 +226,7 @@ export default function Home() {
             const isAnalyzed = analysis[league]?.top_target;
             const isLoading = loading[league] || false;
             const week = status[league]?.current_week || '?';
-            const isReady = typeof week === 'number' && week >= 25;
+            const isReady = typeof week === 'number' && week >= 20;
             const data = analysis[league] || {};
             const topTarget = data.top_target || null;
             const secondaryTarget = data.secondary_target || null;
@@ -208,9 +234,9 @@ export default function Home() {
             return (
               <div
                 key={league}
-                className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200"
+                className="bg-slate-800/90 rounded-2xl shadow-xl border border-slate-700 overflow-hidden hover:border-slate-500 transition-all duration-200"
               >
-                <div className={`h-1 w-full ${LEAGUE_COLORS[league].split(' ')[0]}`}></div>
+                <div className={`h-1 w-full bg-gradient-to-r ${LEAGUE_COLORS[league]}`}></div>
 
                 <div className="p-5 md:p-6">
                   {/* Header */}
@@ -218,23 +244,23 @@ export default function Home() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-2xl">{LEAGUE_EMOJIS[league]}</span>
-                        <h2 className="text-xl font-bold text-gray-900">{league}</h2>
+                        <h2 className="text-xl font-bold text-white">{league}</h2>
                         {isReady && (
-                          <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">Ready</span>
+                          <span className="text-[10px] bg-emerald-900/50 text-emerald-400 px-2 py-0.5 rounded-full font-semibold border border-emerald-700">Ready</span>
                         )}
                         {week !== '?' && !isReady && (
-                          <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">Week {week}</span>
+                          <span className="text-[10px] bg-amber-900/50 text-amber-400 px-2 py-0.5 rounded-full font-semibold border border-amber-700">Week {week}</span>
                         )}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-gray-500">Week {week}</span>
-                        <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                        <span className="text-xs text-gray-400">{getLastScrape(league)}</span>
+                        <span className="text-xs text-slate-400">Week {week}</span>
+                        <span className="w-1 h-1 rounded-full bg-slate-600"></span>
+                        <span className="text-xs text-slate-500">{getLastScrape(league)}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-yellow-400 animate-pulse' : 'bg-green-500'}`}></div>
-                      <span className="text-[10px] text-gray-600 font-medium uppercase">{isLoading ? 'Scraping' : 'Ready'}</span>
+                      <div className={`w-2 h-2 rounded-full ${isLoading ? 'bg-yellow-400 animate-pulse' : 'bg-emerald-400'}`}></div>
+                      <span className="text-[10px] text-slate-400 font-medium uppercase">{isLoading ? 'Scraping' : 'Ready'}</span>
                     </div>
                   </div>
 
@@ -245,8 +271,8 @@ export default function Home() {
                     className={`
                       w-full py-2.5 rounded-xl font-semibold text-sm text-white transition-all duration-200
                       ${isLoading 
-                        ? 'bg-gray-300 cursor-not-allowed' 
-                        : `${LEAGUE_COLORS[league]} shadow-sm hover:shadow-md active:scale-[0.98]`
+                        ? 'bg-slate-700 cursor-not-allowed' 
+                        : `bg-gradient-to-r ${LEAGUE_COLORS[league]} shadow-lg hover:shadow-xl active:scale-[0.98]`
                       }
                     `}
                   >
@@ -272,8 +298,8 @@ export default function Home() {
                   )}
 
                   {!isAnalyzed && !isLoading && (
-                    <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 border-dashed">
-                      <p className="text-center text-gray-400 text-sm">No analysis yet. Scrape to generate insights.</p>
+                    <div className="mt-4 p-4 bg-slate-700/30 rounded-xl border border-slate-700 border-dashed">
+                      <p className="text-center text-slate-400 text-sm">No analysis yet. Scrape to generate insights.</p>
                     </div>
                   )}
                 </div>
@@ -283,7 +309,7 @@ export default function Home() {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-xs text-gray-400 border-t border-gray-200 pt-6">
+        <div className="mt-8 text-center text-xs text-slate-500 border-t border-slate-800 pt-6">
           <p>Virtual Sports Intelligence • Data refreshed on scrape • Over 1.5 Analysis Engine</p>
         </div>
       </div>
