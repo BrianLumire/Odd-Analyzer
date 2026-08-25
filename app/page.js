@@ -152,7 +152,7 @@ export default function Home() {
 
         {matches.length > 0 && (
           <div className="mt-3">
-            <div className="text-xs font-semibold text-slate-400 mb-1">📋 All matches since Week 20:</div>
+            <div className="text-xs font-semibold text-slate-400 mb-1">📋 All matches since Week 18:</div>
             <div className="max-h-48 overflow-y-auto space-y-0.5 pr-1 bg-slate-900/50 rounded-lg p-2">
               {matches.map((m, idx) => (
                 <MatchItem key={idx} match={m} />
@@ -176,7 +176,7 @@ export default function Home() {
         )}
         {!isPrimary && !lastMatch && (
           <div className="mt-3 p-2 bg-slate-700/50 rounded text-slate-400 text-sm">
-            No matches from Week 20+ available.
+            No matches from Week 18+ available.
           </div>
         )}
       </div>
@@ -202,7 +202,7 @@ export default function Home() {
           {LEAGUES.map((league) => {
             const week = status[league]?.current_week || '?';
             const lastScrape = getLastScrape(league);
-            const isReady = typeof week === 'number' && week >= 20;
+            const isReady = typeof week === 'number' && week >= 18;
             return (
               <div key={`stat-${league}`} className="bg-slate-800/80 rounded-xl shadow-lg border border-slate-700 px-3 py-3 text-center">
                 <div className="text-2xl">{LEAGUE_EMOJIS[league]}</div>
@@ -210,10 +210,10 @@ export default function Home() {
                 <div className="text-white font-bold text-lg">Week {week}</div>
                 <div className="text-[10px] text-slate-500">{lastScrape}</div>
                 {isReady && (
-                  <div className="mt-1 text-[10px] text-emerald-400 font-bold">✅ Ready (20+)</div>
+                  <div className="mt-1 text-[10px] text-emerald-400 font-bold">✅ Ready (18+)</div>
                 )}
-                {week !== '?' && week < 20 && (
-                  <div className="mt-1 text-[10px] text-amber-400 font-bold">⏳ Week {week}/20</div>
+                {week !== '?' && week < 18 && (
+                  <div className="mt-1 text-[10px] text-amber-400 font-bold">⏳ Week {week}/18</div>
                 )}
               </div>
             );
@@ -226,7 +226,7 @@ export default function Home() {
             const isAnalyzed = analysis[league]?.top_target;
             const isLoading = loading[league] || false;
             const week = status[league]?.current_week || '?';
-            const isReady = typeof week === 'number' && week >= 20;
+            const isReady = typeof week === 'number' && week >= 18;
             const data = analysis[league] || {};
             const topTarget = data.top_target || null;
             const secondaryTarget = data.secondary_target || null;
