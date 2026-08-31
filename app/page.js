@@ -251,7 +251,7 @@ export default function Home() {
         {/* Matches (collapsible, optional) */}
         {matches.length > 0 && (
           <div className="mt-3">
-            <div className="text-xs font-semibold text-slate-400 mb-1">📋 All matches since Week 18:</div>
+           <div className="text-xs font-semibold text-slate-400 mb-1">📋 All matches:</div>
             <div className="max-h-48 overflow-y-auto space-y-0.5 pr-1 bg-slate-900/50 rounded-lg p-2">
               {matches.map((m, idx) => (
                 <MatchItem key={idx} match={m} />
