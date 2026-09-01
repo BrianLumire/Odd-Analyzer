@@ -44,11 +44,9 @@ export default function Home() {
       const data = await res.json();
       if (!data.error) {
         setAnalysis((prev) => ({ ...prev, [league]: data }));
-        // Initialize selections for this league's targets
         const targets = data.targets || [];
         const initialSelections = {};
         targets.forEach((t) => {
-          // Auto-select only if recommendation is "Bet"
           initialSelections[t.team] = t.recommendation === 'Bet';
         });
         setSelectedTeams((prev) => ({ ...prev, [league]: initialSelections }));
@@ -90,7 +88,6 @@ export default function Home() {
     return `${Math.floor(diff / 60)}h ago`;
   };
 
-  // ---- Accumulator calculation ----
   const calculateAccumulator = (league) => {
     const targets = analysis[league]?.targets || [];
     const selected = targets.filter(
@@ -145,7 +142,6 @@ export default function Home() {
     );
   };
 
-  // ---- Target Card (with checkbox and win calculation) ----
   const TargetCard = ({ target, isPrimary, week, league, onToggle }) => {
     if (!target) return null;
     const coldStreak = target.cold_streak || false;
@@ -158,7 +154,6 @@ export default function Home() {
     const recommendation = target.recommendation || 'N/A';
     const isSelected = selectedTeams[league]?.[team] || false;
 
-    // Single bet calculation
     const singleWin = odds !== null && odds !== undefined ? stake * odds : null;
     const singleProfit = singleWin !== null ? singleWin - stake : null;
 
@@ -207,7 +202,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Stats grid */}
+        {/* Stats grid – UPDATED with bigger, blue "All" hit rate */}
         <div className="grid grid-cols-4 gap-2 mt-3 text-center">
           <div className="bg-slate-700/50 p-2 rounded">
             <div className="text-[10px] font-semibold text-slate-400">Avg GF</div>
@@ -224,7 +219,7 @@ export default function Home() {
           <div className="bg-slate-700/50 p-2 rounded">
             <div className="text-[10px] font-semibold text-slate-400">Hit Rate</div>
             <div className="text-lg font-bold text-yellow-400">{target.hit_rate}%</div>
-            <div className="text-[9px] text-slate-400">All: {target.hit_rate_all}%</div>
+            <div className="text-sm font-semibold text-blue-400">All: {target.hit_rate_all}%</div>
           </div>
         </div>
 
@@ -249,7 +244,7 @@ export default function Home() {
           )}
         </div>
 
-        {/* Matches (collapsible, optional) */}
+        {/* Matches */}
         {matches.length > 0 && (
           <div className="mt-3">
             <div className="text-xs font-semibold text-slate-400 mb-1">📋 All matches :</div>
@@ -282,7 +277,6 @@ export default function Home() {
     );
   };
 
-  // ---- Accumulator Preview Component ----
   const AccumulatorPreview = ({ league }) => {
     const acc = calculateAccumulator(league);
     if (!acc || acc.count < 2) {
@@ -329,7 +323,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-900 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-block px-4 py-1 bg-blue-900/50 text-blue-300 rounded-full text-xs font-semibold tracking-wider uppercase border border-blue-700">
             🎯 Virtual Sports Intelligence
@@ -340,7 +333,6 @@ export default function Home() {
           <p className="text-slate-400 text-sm md:text-base">Live league dashboard &amp; Over 1.5 betting intelligence</p>
         </div>
 
-        {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
           {LEAGUES.map((league) => {
             const week = status[league]?.current_week || '?';
@@ -361,7 +353,6 @@ export default function Home() {
           })}
         </div>
 
-        {/* League Cards */}
         {LEAGUES.map((league) => {
           const isAnalyzed = analysis[league]?.top_target;
           const isLoading = loading[league] || false;
@@ -388,7 +379,6 @@ export default function Home() {
               <div className={`h-1 w-full bg-gradient-to-r ${LEAGUE_COLORS[league]}`}></div>
 
               <div className="p-5 md:p-6">
-                {/* Header */}
                 <div className="flex flex-wrap items-start justify-between mb-4 gap-2">
                   <div>
                     <div className="flex items-center gap-2">
@@ -417,7 +407,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Stake input & Scrape Button */}
                 <div className="flex flex-wrap items-center gap-3 mb-4">
                   <div className="flex items-center gap-2 bg-slate-700/50 rounded-lg px-3 py-1.5 border border-slate-600">
                     <span className="text-xs text-slate-400 font-semibold">Stake (KES)</span>
@@ -455,10 +444,8 @@ export default function Home() {
                   </button>
                 </div>
 
-                {/* Analysis Results */}
                 {isAnalyzed && !isLoading && (
                   <div className="space-y-4">
-                    {/* 4 Targets in responsive grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {targets.slice(0, 4).map((target, index) => (
                         <TargetCard
@@ -471,8 +458,6 @@ export default function Home() {
                         />
                       ))}
                     </div>
-
-                    {/* Accumulator Preview */}
                     <AccumulatorPreview league={league} />
                   </div>
                 )}
@@ -487,7 +472,6 @@ export default function Home() {
           );
         })}
 
-        {/* Footer */}
         <div className="mt-8 text-center text-xs text-slate-500 border-t border-slate-800 pt-6">
           <p>Virtual Sports Intelligence • Data refreshed on scrape • Over 1.5 Analysis Engine</p>
         </div>
