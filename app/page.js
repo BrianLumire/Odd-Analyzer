@@ -224,6 +224,7 @@ export default function Home() {
           <div className="bg-slate-700/50 p-2 rounded">
             <div className="text-[10px] font-semibold text-slate-400">Hit Rate</div>
             <div className="text-lg font-bold text-yellow-400">{target.hit_rate}%</div>
+            <div className="text-[9px] text-slate-400">All: {target.hit_rate_all}%</div>
           </div>
         </div>
 
@@ -251,7 +252,7 @@ export default function Home() {
         {/* Matches (collapsible, optional) */}
         {matches.length > 0 && (
           <div className="mt-3">
-           <div className="text-xs font-semibold text-slate-400 mb-1">📋 All matches :</div>
+            <div className="text-xs font-semibold text-slate-400 mb-1">📋 All matches :</div>
             <div className="max-h-48 overflow-y-auto space-y-0.5 pr-1 bg-slate-900/50 rounded-lg p-2">
               {matches.map((m, idx) => (
                 <MatchItem key={idx} match={m} />
